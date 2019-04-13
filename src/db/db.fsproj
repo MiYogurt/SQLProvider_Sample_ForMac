@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(MSBuildRuntimeType)' == 'Core'">
+    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
+    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsOSX)' == 'true'">
+    <FscToolPath>/Library/Frameworks/Mono.framework/Versions/Current/Commands</FscToolPath>
+    <FscToolExe>fsharpc</FscToolExe>
+  </PropertyGroup>
+  <ItemGroup>
+  <Reference Condition="'$(IsWindows)' != 'true' Or '$(TargetFramework)' == 'netstandard2.0'" Include="FSharp.Data.SqlProvider">
+    <HintPath>../../packages/SQLProvider/lib/net451/FSharp.Data.SqlProvider.dll</HintPath>
+  </Reference>
+  </ItemGroup>
+  <Target Name="CopyLibrariesNonWin">
+    <Exec Command="mkdir -p temp" />
+    <Exec Command="cp ../../packages/Npgsql/lib/net451/Npgsql.dll temp/ " />
+    <Exec Command="cp ../../packages/System.Threading.Tasks.Extensions/lib/portable-net45+win8+wp8+wpa81/System.Threading.Tasks.Extensions.dll temp/ " />
+    <Exec Command="cp ../../packages/System.Memory/lib/netstandard2.0/System.Memory.dll temp/ " />
+  </Target>
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <CallTarget Targets="CopyLibrariesNonWin" Condition="'$(IsWindows)' != 'true'" />
+  </Target>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>
